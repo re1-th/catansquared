@@ -1,12 +1,8 @@
-const SERIES_SLOTS = 8;
+import { PLAYER_NAMES } from "./players";
 
-/**
- * A player's chart colour follows the player (their join order), never their rank,
- * so it stays the same on every chart. Players past the 8th share a neutral.
- */
-export function playerColor(playerIds: number[], playerId: number) {
-  const slot = [...playerIds].sort((a, b) => a - b).indexOf(playerId);
-  return slot >= 0 && slot < SERIES_SLOTS ? `var(--series-${slot + 1})` : "var(--muted-foreground)";
+/** Each player's colour (defined per theme in globals.css); anyone not in the list gets a neutral. */
+export function playerColor(name: string) {
+  return PLAYER_NAMES.includes(name) ? `var(--player-${name.toLowerCase()})` : "var(--muted-foreground)";
 }
 
 export function initials(name: string) {

@@ -20,15 +20,13 @@
   --hero: #1e1d1a;
   --hero-foreground: #f1efea;
 
-  /* Categorical chart slots (dataviz reference palette, light steps). */
-  --series-1: #2a78d6;
-  --series-2: #eb6834;
-  --series-3: #1baf7a;
-  --series-4: #eda100;
-  --series-5: #e87ba4;
-  --series-6: #008300;
-  --series-7: #6250d6;
-  --series-8: #e34948;
+  /* Player colours, carried over from the SMT tracker. Same hue per player in both themes. */
+  --player-bhamini: #2a78d6;
+  --player-somak: #d63c3b;
+  --player-bisht: #e8731f;
+  --player-harish: #7b4fd0;
+  --player-revanth: #1f9a4b;
+  --player-rajdeep: #8a5a2e;
 }
 
 :root[data-theme="dark"] {
@@ -48,14 +46,12 @@
   --hero: #f1efea;
   --hero-foreground: #161513;
 
-  --series-1: #3987e5;
-  --series-2: #d95926;
-  --series-3: #199e70;
-  --series-4: #c98500;
-  --series-5: #d55181;
-  --series-6: #008300;
-  --series-7: #9085e9;
-  --series-8: #e66767;
+  --player-bhamini: #3987e5;
+  --player-somak: #e66767;
+  --player-bisht: #f08a3e;
+  --player-harish: #a58bf0;
+  --player-revanth: #3fbf6a;
+  --player-rajdeep: #b88358;
 }
 
 @theme inline {

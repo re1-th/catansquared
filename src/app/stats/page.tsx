@@ -21,7 +21,6 @@ export default async function StatsPage() {
 
   const stats = playerStats(players, games, leagues).filter((s) => s.gamesPlayed > 0);
   const byAvg = [...stats].sort((a, b) => b.avgScore - a.avgScore);
-  const ids = players.map((p) => p.id);
   const gameDays = new Set(games.map((g) => g.playedOn)).size;
   const finished = leagues.filter((l) => l.championId !== null).length;
 
@@ -34,7 +33,7 @@ export default async function StatsPage() {
       if (s.avgProgression[k]?.[0] === g.number) last = s.avgProgression[k++][1];
       values.push(last === null ? null : Math.round(last * 100) / 100);
     }
-    return { id: s.playerId, name: s.name, color: playerColor(ids, s.playerId), values };
+    return { id: s.playerId, name: s.name, color: playerColor(s.name), values };
   });
 
   const bar = (pick: (s: (typeof stats)[number]) => number, display?: (v: number) => string) =>
@@ -42,7 +41,7 @@ export default async function StatsPage() {
 
   return (
     <>
-      <PageTitle title="Stats">Every game ever logged, across all leagues.</PageTitle>
+      <PageTitle title="Stats" />
 
       <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
         <StatTile label="Games played" value={games.length} />

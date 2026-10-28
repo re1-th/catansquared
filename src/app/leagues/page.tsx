@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { BonusHistory } from "@/components/bonus-history";
 import { StandingsTable } from "@/components/standings";
 import { Badge, Empty, PageTitle } from "@/components/ui";
 import { formatDate } from "@/lib/format";
@@ -13,9 +14,7 @@ export default async function LeaguesPage() {
 
   return (
     <>
-      <PageTitle title="Leagues">
-        A league ends the moment someone wins a game while on 10 or more points. The next game starts a new one.
-      </PageTitle>
+      <PageTitle title="Leagues" />
       {finished.length === 0 ? (
         <Empty>
           No league has been won yet. <Link href="/" className="text-foreground underline underline-offset-4">See the current standings</Link>.
@@ -35,6 +34,9 @@ export default async function LeaguesPage() {
                   </span>
                 </div>
                 <StandingsTable league={l} nameOf={nameOf} />
+                <div className="mt-3">
+                  <BonusHistory league={l} nameOf={nameOf} />
+                </div>
               </section>
             );
           })}

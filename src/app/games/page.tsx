@@ -14,10 +14,7 @@ export default async function GamesPage() {
 
   return (
     <>
-      <PageTitle title="Games">
-        {games.length} game{games.length === 1 ? "" : "s"} logged across {leagues.length} league
-        {leagues.length === 1 ? "" : "s"}. Editing or deleting a game recalculates every league after it.
-      </PageTitle>
+      <PageTitle title="Games" />
       {games.length === 0 ? (
         <Empty>
           No games yet. <Link href="/games/new" className="text-foreground underline underline-offset-4">Log the first one</Link>.

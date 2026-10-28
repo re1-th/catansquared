@@ -13,7 +13,7 @@ export default async function PlayersPage() {
 
   return (
     <>
-      <PageTitle title="Players">Everyone who has played in the league.</PageTitle>
+      <PageTitle title="Players" />
       {players.length === 0 ? (
         <Empty>No players found. Check the database connection.</Empty>
       ) : (

@@ -79,6 +79,19 @@ describe("computeLeagues", () => {
     expect(leagues).toHaveLength(2);
   });
 
+  it("records each time a bonus changes hands", () => {
+    // B takes LR, A ties (no change), A passes B, B ties back (no change).
+    const [l] = computeLeagues(
+      games([{ win: C, lr: B }, { win: C, lr: A }, { win: C, lr: A }, { win: C, lr: B }]),
+      PLAYERS,
+    );
+    expect(l.longestRoad.history).toEqual([
+      { gameIndex: 0, holderId: B, count: 1, fromId: null, fromCount: 0 },
+      { gameIndex: 2, holderId: A, count: 2, fromId: B, fromCount: 1 },
+    ]);
+    expect(l.largestArmy.history).toEqual([]);
+  });
+
   it("moves bonus points away when a holder is overtaken", () => {
     const [l] = computeLeagues(games([{ win: C, la: A }, { win: C, la: B }, { win: C, la: B }]), PLAYERS);
     expect(standing(l, A).points).toBe(0);

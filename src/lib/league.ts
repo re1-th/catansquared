@@ -11,6 +11,19 @@ export const BONUS_POINTS = 2;
 export type BonusRace = {
   holderId: number | null;
   counts: Map<number, number>;
+  /** Every time the bonus changed hands, oldest first. */
+  history: BonusChange[];
+};
+
+export type BonusChange = {
+  /** Index (within the league) of the game in which it changed hands. */
+  gameIndex: number;
+  holderId: number;
+  /** The new holder's count after that game. */
+  count: number;
+  /** Who they took it from (null for the first holder) and that player's count at the time. */
+  fromId: number | null;
+  fromCount: number;
 };
 
 export type Standing = {
@@ -38,13 +51,14 @@ export type League = {
   pointsTimeline: Map<number, number[]>;
 };
 
-function takeBonus(race: BonusRace, playerId: number) {
+function takeBonus(race: BonusRace, playerId: number, gameIndex: number) {
   const count = (race.counts.get(playerId) ?? 0) + 1;
   race.counts.set(playerId, count);
-  if (race.holderId === null) {
+  const fromId = race.holderId;
+  const fromCount = fromId === null ? 0 : (race.counts.get(fromId) ?? 0);
+  if (fromId === null || (fromId !== playerId && count > fromCount)) {
     race.holderId = playerId;
-  } else if (race.holderId !== playerId && count > (race.counts.get(race.holderId) ?? 0)) {
-    race.holderId = playerId;
+    race.history.push({ gameIndex, holderId: playerId, count, fromId, fromCount });
   }
 }
 
@@ -54,8 +68,8 @@ function newLeague(number: number): League {
     games: [],
     championId: null,
     standings: [],
-    longestRoad: { holderId: null, counts: new Map() },
-    largestArmy: { holderId: null, counts: new Map() },
+    longestRoad: { holderId: null, counts: new Map(), history: [] },
+    largestArmy: { holderId: null, counts: new Map(), history: [] },
     pointsTimeline: new Map(),
   };
 }
@@ -115,8 +129,8 @@ export function computeLeagues(games: Game[], playerIds: number[]): League[] {
         winnerId = r.playerId;
         wins.set(r.playerId, (wins.get(r.playerId) ?? 0) + 1);
       }
-      if (r.longestRoad) takeBonus(league.longestRoad, r.playerId);
-      if (r.largestArmy) takeBonus(league.largestArmy, r.playerId);
+      if (r.longestRoad) takeBonus(league.longestRoad, r.playerId, index);
+      if (r.largestArmy) takeBonus(league.largestArmy, r.playerId, index);
     }
 
     const ids = new Set([...playerIds, ...played.keys()]);

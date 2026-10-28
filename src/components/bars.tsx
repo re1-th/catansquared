@@ -1,9 +1,10 @@
 import Link from "next/link";
+import { playerColor } from "@/lib/format";
 import { Card } from "./ui";
 
 export type BarItem = { id: number; name: string; value: number; display?: string };
 
-/** Ranked horizontal bars for a single measure. One hue; the leader is picked out in the accent. */
+/** Ranked horizontal bars for a single measure, each in its player's colour. */
 export function BarList({ title, items }: { title: string; items: BarItem[] }) {
   const sorted = [...items].sort((a, b) => b.value - a.value || a.name.localeCompare(b.name));
   const max = Math.max(...sorted.map((i) => i.value), 0);
@@ -12,7 +13,7 @@ export function BarList({ title, items }: { title: string; items: BarItem[] }) {
     <Card className="p-5">
       <h3 className="eyebrow mb-4">{title}</h3>
       <ul className="space-y-2.5">
-        {sorted.map((item, i) => (
+        {sorted.map((item) => (
           <li key={item.id} title={`${item.name}: ${item.display ?? item.value}`}>
             <div className="mb-1 flex justify-between text-sm">
               <Link href={`/players/${item.id}`} className="hover:underline underline-offset-4">{item.name}</Link>
@@ -20,8 +21,8 @@ export function BarList({ title, items }: { title: string; items: BarItem[] }) {
             </div>
             <div className="h-1.5 rounded-full bg-muted">
               <div
-                className={`h-full rounded-full ${i === 0 && item.value > 0 ? "bg-signal" : "bg-muted-foreground/60"}`}
-                style={{ width: max ? `${(item.value / max) * 100}%` : 0 }}
+                className="h-full rounded-full"
+                style={{ width: max ? `${(item.value / max) * 100}%` : 0, background: playerColor(item.name) }}
               />
             </div>
           </li>

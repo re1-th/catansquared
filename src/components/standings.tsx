@@ -1,4 +1,5 @@
-import { BONUS_POINTS, POINTS_TO_WIN, isMatchPoint, type BonusRace, type League } from "@/lib/league";
+import { playerColor } from "@/lib/format";
+import { BONUS_POINTS, POINTS_TO_WIN, isMatchPoint, type BonusRace, type League, type Standing } from "@/lib/league";
 import { Badge, Card, PlayerLink } from "./ui";
 
 function BonusCell({ count, holds }: { count: number; holds: boolean }) {
@@ -92,17 +93,44 @@ function raceLine(race: BonusRace, nameOf: (id: number) => string) {
   };
 }
 
+const PODIUM = [
+  { place: 2, height: "h-10" },
+  { place: 1, height: "h-16" },
+  { place: 3, height: "h-6" },
+];
+
+/** Top three on points, drawn as a podium (2nd, 1st, 3rd). */
+function Podium({ top, nameOf }: { top: Standing[]; nameOf: (id: number) => string }) {
+  return (
+    <div className="grid flex-1 grid-cols-3 items-end gap-1.5">
+      {PODIUM.map(({ place, height }) => {
+        const s = top[place - 1];
+        const name = s ? nameOf(s.playerId) : null;
+        return (
+          <div key={place} className="flex min-w-0 flex-col items-center text-center">
+            <span className={`w-full truncate font-semibold tracking-tight ${place === 1 ? "text-base" : "text-sm"}`}>
+              {name ?? "–"}
+            </span>
+            <span className="tabular mb-1.5 font-mono text-[11px] opacity-60">{s ? `${s.points} pts` : " "}</span>
+            <div
+              className={`grid w-full place-items-center rounded-t-md border-t-[3px] bg-current/10 ${height}`}
+              style={{ borderTopColor: name ? playerColor(name) : "transparent" }}
+            >
+              <span className="tabular font-mono text-sm opacity-70">{place}</span>
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
 /** The inverted "Current leaders" panel, after FieldRank's rankings page. */
 export function LeadersCard({ league, nameOf }: { league: League; nameOf: (id: number) => string }) {
   const top = league.standings.filter((s) => s.points > 0).slice(0, 3);
-  const road = raceLine(league.longestRoad, nameOf);
-  const army = raceLine(league.largestArmy, nameOf);
-
   const rows = [
-    { label: "Points", holder: top[0] ? `${nameOf(top[0].playerId)} · ${top[0].points}` : "No games yet",
-      rest: top.slice(1).map((s, i) => `${i + 2} ${nameOf(s.playerId)}`).join(" · ") },
-    { label: "Road", ...road },
-    { label: "Army", ...army },
+    { label: "Road", ...raceLine(league.longestRoad, nameOf) },
+    { label: "Army", ...raceLine(league.largestArmy, nameOf) },
   ];
 
   return (
@@ -111,8 +139,16 @@ export function LeadersCard({ league, nameOf }: { league: League; nameOf: (id: n
         <span className="font-mono text-[11px] uppercase tracking-[0.08em] opacity-60">Current leaders</span>
         <Badge>League {league.number}</Badge>
       </div>
-      {rows.map((r, i) => (
-        <div key={r.label} className={`flex gap-4 py-3 ${i > 0 ? "border-t border-current/15" : ""}`}>
+      <div className="flex gap-4 pb-3 pt-2">
+        <span className="w-12 shrink-0 self-end pb-1 font-mono text-[11px] uppercase tracking-[0.08em] opacity-60">Points</span>
+        {top.length > 0 ? (
+          <Podium top={top} nameOf={nameOf} />
+        ) : (
+          <span className="text-lg font-semibold tracking-tight">No games yet</span>
+        )}
+      </div>
+      {rows.map((r) => (
+        <div key={r.label} className="flex gap-4 border-t border-current/15 py-3">
           <span className="w-12 shrink-0 pt-1 font-mono text-[11px] uppercase tracking-[0.08em] opacity-60">{r.label}</span>
           <div className="min-w-0">
             <div className="truncate text-lg font-semibold tracking-tight">{r.holder}</div>

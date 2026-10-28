@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { BonusHistory } from "@/components/bonus-history";
 import { GameList } from "@/components/game-list";
 import { PointsRace } from "@/components/points-race";
 import { LeadersCard, StandingsTable } from "@/components/standings";
@@ -12,7 +13,7 @@ export default async function RankingsPage() {
 
   return (
     <>
-      <div className="grid gap-8 lg:grid-cols-[1fr_380px] lg:items-start">
+      <div className="mb-10 grid gap-8 lg:grid-cols-[1fr_380px] lg:items-start">
         <PageTitle
           title={`League ${current.number}`}
           badge={<Badge tone="outline">{current.games.length ? "In progress" : "Not started"}</Badge>}
@@ -46,8 +47,11 @@ export default async function RankingsPage() {
         <>
           <SectionTitle>Points race</SectionTitle>
           <Card className="p-5">
-            <PointsRace league={current} nameOf={nameOf} playerIds={players.map((p) => p.id)} />
+            <PointsRace league={current} nameOf={nameOf} />
           </Card>
+
+          <SectionTitle>Longest Road &amp; Largest Army</SectionTitle>
+          <BonusHistory league={current} nameOf={nameOf} />
 
           <SectionTitle aside={<Link href="/games" className="text-sm text-muted-foreground hover:text-foreground">All games →</Link>}>
             Recent games

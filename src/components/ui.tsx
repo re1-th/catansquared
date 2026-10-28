@@ -1,6 +1,6 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
-import { initials } from "@/lib/format";
+import { initials, playerColor } from "@/lib/format";
 
 export function Card({ children, className = "" }: { children: ReactNode; className?: string }) {
   return <div className={`rounded-xl border border-border bg-card ${className}`}>{children}</div>;
@@ -25,6 +25,7 @@ export function Avatar({ name, size = "sm" }: { name: string; size?: "sm" | "lg"
       className={`grid shrink-0 place-items-center rounded-full bg-muted font-mono text-muted-foreground ${
         size === "lg" ? "size-14 text-base" : "size-7 text-[10px]"
       }`}
+      style={{ boxShadow: `inset 0 0 0 ${size === "lg" ? 2 : 1.5}px ${playerColor(name)}` }}
     >
       {initials(name)}
     </span>

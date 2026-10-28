@@ -82,7 +82,7 @@ export default async function PlayerPage({ params }: PageProps<"/players/[id]">)
                   series={[{
                     id,
                     name: player.name,
-                    color: playerColor(players.map((p) => p.id), id),
+                    color: playerColor(player.name),
                     values: s.avgProgression.map(([, v]) => Math.round(v * 100) / 100),
                   }]}
                   xLabels={s.avgProgression.map(([n]) => `Game ${n}`)}
