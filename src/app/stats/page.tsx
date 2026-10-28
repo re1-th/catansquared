@@ -101,7 +101,7 @@ export default async function StatsPage() {
 
       <SectionTitle>Odds and ends</SectionTitle>
       <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
-        {highlights(games, stats).map((h) => (
+        {highlights(games, stats, leagues).map((h) => (
           <StatTile key={h.label} label={h.label} value={h.value} detail={h.detail} />
         ))}
       </div>
