@@ -34,6 +34,12 @@ async function createQuery(): Promise<QueryFn> {
     const sql = neon(url);
     return (text, params = []) => sql.query(text, params) as Promise<Row[]>;
   }
+  // Vercel's filesystem is read-only and per-instance, so the local fallback can never work there.
+  if (process.env.VERCEL) {
+    throw new Error(
+      "No database is connected: DATABASE_URL is not set. Connect Neon to the Vercel project (Storage tab), then redeploy.",
+    );
+  }
   const { PGlite } = await import("@electric-sql/pglite");
   const { mkdirSync } = await import("node:fs");
   mkdirSync("./.data", { recursive: true });
@@ -50,7 +56,11 @@ async function init(): Promise<QueryFn> {
 }
 
 export async function query<T = Row>(text: string, params: unknown[] = []): Promise<T[]> {
-  globalForDb.catanDb ??= init();
+  // Forget a failed connection so the next request retries instead of failing forever.
+  globalForDb.catanDb ??= init().catch((err) => {
+    globalForDb.catanDb = undefined;
+    throw err;
+  });
   const run = await globalForDb.catanDb;
   return (await run(text, params)) as T[];
 }

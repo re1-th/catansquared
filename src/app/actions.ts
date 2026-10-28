@@ -7,6 +7,13 @@ import type { GameInput, Player } from "@/lib/types";
 
 export type ActionResult = { error: string } | { ok: true };
 
+/** Turns a database failure into a message the form can show, instead of crashing the page. */
+function failure(err: unknown): { error: string } {
+  console.error(err);
+  const detail = err instanceof Error ? err.message : String(err);
+  return { error: `Couldn't save: ${detail}` };
+}
+
 function validate(input: GameInput): string | null {
   if (!/^\d{4}-\d{2}-\d{2}$/.test(input.playedOn) || Number.isNaN(Date.parse(input.playedOn))) {
     return "Pick a valid date.";
@@ -43,13 +50,17 @@ export async function addGame(input: GameInput): Promise<ActionResult> {
   const error = validate(input);
   if (error) return { error };
 
-  await query(
-    `WITH g AS (INSERT INTO games (played_on) VALUES ($1) RETURNING id)
-     INSERT INTO game_players (game_id, player_id, score, is_winner, longest_road, largest_army)
-     SELECT g.id, x.player_id, x.score, x.is_winner, x.longest_road, x.largest_army
-     FROM g, ${RESULTS_FROM_ARRAYS}`,
-    [input.playedOn, ...resultColumns(input)],
-  );
+  try {
+    await query(
+      `WITH g AS (INSERT INTO games (played_on) VALUES ($1) RETURNING id)
+       INSERT INTO game_players (game_id, player_id, score, is_winner, longest_road, largest_army)
+       SELECT g.id, x.player_id, x.score, x.is_winner, x.longest_road, x.largest_army
+       FROM g, ${RESULTS_FROM_ARRAYS}`,
+      [input.playedOn, ...resultColumns(input)],
+    );
+  } catch (err) {
+    return failure(err);
+  }
   updateTag(DATA_TAG);
   return { ok: true };
 }
@@ -58,27 +69,36 @@ export async function updateGame(id: number, input: GameInput): Promise<ActionRe
   const error = validate(input);
   if (error) return { error };
 
-  const rows = await query(
-    `WITH g AS (UPDATE games SET played_on = $1 WHERE id = $7 RETURNING id),
-     removed AS (DELETE FROM game_players WHERE game_id = $7 AND player_id <> ALL($2::int[]))
-     INSERT INTO game_players (game_id, player_id, score, is_winner, longest_road, largest_army)
-     SELECT g.id, x.player_id, x.score, x.is_winner, x.longest_road, x.largest_army
-     FROM g, ${RESULTS_FROM_ARRAYS}
-     ON CONFLICT (game_id, player_id) DO UPDATE SET
-       score = EXCLUDED.score,
-       is_winner = EXCLUDED.is_winner,
-       longest_road = EXCLUDED.longest_road,
-       largest_army = EXCLUDED.largest_army
-     RETURNING game_id`,
-    [input.playedOn, ...resultColumns(input), id],
-  );
+  let rows;
+  try {
+    rows = await query(
+      `WITH g AS (UPDATE games SET played_on = $1 WHERE id = $7 RETURNING id),
+       removed AS (DELETE FROM game_players WHERE game_id = $7 AND player_id <> ALL($2::int[]))
+       INSERT INTO game_players (game_id, player_id, score, is_winner, longest_road, largest_army)
+       SELECT g.id, x.player_id, x.score, x.is_winner, x.longest_road, x.largest_army
+       FROM g, ${RESULTS_FROM_ARRAYS}
+       ON CONFLICT (game_id, player_id) DO UPDATE SET
+         score = EXCLUDED.score,
+         is_winner = EXCLUDED.is_winner,
+         longest_road = EXCLUDED.longest_road,
+         largest_army = EXCLUDED.largest_army
+       RETURNING game_id`,
+      [input.playedOn, ...resultColumns(input), id],
+    );
+  } catch (err) {
+    return failure(err);
+  }
   if (rows.length === 0) return { error: "That game no longer exists." };
   updateTag(DATA_TAG);
   return { ok: true };
 }
 
 export async function deleteGame(id: number): Promise<ActionResult> {
-  await query("DELETE FROM games WHERE id = $1", [id]);
+  try {
+    await query("DELETE FROM games WHERE id = $1", [id]);
+  } catch (err) {
+    return failure(err);
+  }
   updateTag(DATA_TAG);
   return { ok: true };
 }
@@ -88,10 +108,14 @@ export async function addPlayer(rawName: string): Promise<{ error: string } | { 
   if (!name) return { error: "Enter a name." };
   if (name.length > 30) return { error: "Keep names under 30 characters." };
 
-  const existing = await query<Player>("SELECT id, name FROM players WHERE lower(name) = lower($1)", [name]);
-  if (existing.length > 0) return { error: `${existing[0].name} is already a player.` };
-
-  const [player] = await query<Player>("INSERT INTO players (name) VALUES ($1) RETURNING id, name", [name]);
+  let player: Player;
+  try {
+    const existing = await query<Player>("SELECT id, name FROM players WHERE lower(name) = lower($1)", [name]);
+    if (existing.length > 0) return { error: `${existing[0].name} is already a player.` };
+    [player] = await query<Player>("INSERT INTO players (name) VALUES ($1) RETURNING id, name", [name]);
+  } catch (err) {
+    return failure(err);
+  }
   updateTag(DATA_TAG);
   return { player };
 }

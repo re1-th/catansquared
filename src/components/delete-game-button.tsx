@@ -9,7 +9,8 @@ export function DeleteGameButton({ id, number }: { id: number; number: number })
   const onClick = () => {
     if (!confirm(`Delete game ${number}? League standings will be recalculated.`)) return;
     startTransition(async () => {
-      await deleteGame(id);
+      const res = await deleteGame(id);
+      if ("error" in res) alert(res.error);
     });
   };
 
