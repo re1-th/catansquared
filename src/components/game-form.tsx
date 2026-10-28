@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
-import { addGame, addPlayer, updateGame } from "@/app/actions";
+import { addGame, updateGame } from "@/app/actions";
 import { todayIso } from "@/lib/format";
 import type { Game, Player } from "@/lib/types";
 import { Avatar, Card } from "./ui";
@@ -40,10 +40,9 @@ function Pick({ checked, onChange, label, name }: { checked: boolean; onChange: 
   );
 }
 
-export function GameForm({ players: initialPlayers, game }: Props) {
+export function GameForm({ players, game }: Props) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
-  const [players, setPlayers] = useState(initialPlayers);
   const [date, setDate] = useState(game?.playedOn ?? todayIso());
   const [selected, setSelected] = useState<number[]>(game?.results.map((r) => r.playerId) ?? []);
   const [scores, setScores] = useState<Record<number, string>>(
@@ -52,7 +51,6 @@ export function GameForm({ players: initialPlayers, game }: Props) {
   const [winner, setWinner] = useState<number | null>(game?.results.find((r) => r.isWinner)?.playerId ?? null);
   const [road, setRoad] = useState<number | null>(game?.results.find((r) => r.longestRoad)?.playerId ?? null);
   const [army, setArmy] = useState<number | null>(game?.results.find((r) => r.largestArmy)?.playerId ?? null);
-  const [newName, setNewName] = useState("");
   const [error, setError] = useState<string | null>(null);
 
   const nameOf = (id: number) => players.find((p) => p.id === id)?.name ?? "";
@@ -66,20 +64,6 @@ export function GameForm({ players: initialPlayers, game }: Props) {
     } else {
       setSelected([...selected, id]);
     }
-  };
-
-  const onAddPlayer = () => {
-    setError(null);
-    startTransition(async () => {
-      const res = await addPlayer(newName);
-      if ("error" in res) {
-        setError(res.error);
-        return;
-      }
-      setPlayers((ps) => [...ps, res.player]);
-      setSelected((s) => [...s, res.player.id]);
-      setNewName("");
-    });
   };
 
   const onSubmit = (e: React.FormEvent) => {
@@ -134,28 +118,6 @@ export function GameForm({ players: initialPlayers, game }: Props) {
               </button>
             );
           })}
-        </div>
-        <div className="mt-3 flex gap-2">
-          <input
-            value={newName}
-            onChange={(e) => setNewName(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === "Enter") {
-                e.preventDefault();
-                if (newName.trim()) onAddPlayer();
-              }
-            }}
-            placeholder="New player name"
-            className={`${inputClass} min-w-0 flex-1 sm:max-w-64`}
-          />
-          <button
-            type="button"
-            onClick={onAddPlayer}
-            disabled={!newName.trim() || pending}
-            className="rounded-lg border border-border px-4 text-sm hover:border-ring disabled:opacity-50"
-          >
-            Add player
-          </button>
         </div>
       </Step>
 

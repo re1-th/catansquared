@@ -15,7 +15,7 @@ export default async function PlayersPage() {
     <>
       <PageTitle title="Players">Everyone who has played in the league.</PageTitle>
       {players.length === 0 ? (
-        <Empty>No players yet. Add them when you log a game.</Empty>
+        <Empty>No players found. Check the database connection.</Empty>
       ) : (
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {stats.map((s) => (

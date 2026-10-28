@@ -1,4 +1,5 @@
 import "server-only";
+import { PLAYER_NAMES } from "./players";
 
 type Row = Record<string, unknown>;
 type QueryFn = (text: string, params?: unknown[]) => Promise<Row[]>;
@@ -52,6 +53,12 @@ const globalForDb = globalThis as unknown as { catanDb?: Promise<QueryFn> };
 async function init(): Promise<QueryFn> {
   const query = await createQuery();
   for (const statement of SCHEMA) await query(statement);
+  await query(
+    `INSERT INTO players (name)
+     SELECT name FROM unnest($1::text[]) WITH ORDINALITY AS t(name, n) ORDER BY n
+     ON CONFLICT (name) DO NOTHING`,
+    [PLAYER_NAMES],
+  );
   return query;
 }
 

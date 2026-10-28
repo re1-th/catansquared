@@ -36,7 +36,7 @@ export default async function RankingsPage() {
 
       {players.length === 0 ? (
         <Empty>
-          No players yet. <Link href="/games/new" className="text-foreground underline underline-offset-4">Log the first game</Link> to add them.
+          No players found. Check the database connection.
         </Empty>
       ) : (
         <StandingsTable league={current} nameOf={nameOf} />

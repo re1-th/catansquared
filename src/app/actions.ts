@@ -3,7 +3,7 @@
 import { updateTag } from "next/cache";
 import { query } from "@/lib/db";
 import { DATA_TAG } from "@/lib/data";
-import type { GameInput, Player } from "@/lib/types";
+import type { GameInput } from "@/lib/types";
 
 export type ActionResult = { error: string } | { ok: true };
 
@@ -101,21 +101,4 @@ export async function deleteGame(id: number): Promise<ActionResult> {
   }
   updateTag(DATA_TAG);
   return { ok: true };
-}
-
-export async function addPlayer(rawName: string): Promise<{ error: string } | { player: Player }> {
-  const name = rawName.trim().replace(/\s+/g, " ");
-  if (!name) return { error: "Enter a name." };
-  if (name.length > 30) return { error: "Keep names under 30 characters." };
-
-  let player: Player;
-  try {
-    const existing = await query<Player>("SELECT id, name FROM players WHERE lower(name) = lower($1)", [name]);
-    if (existing.length > 0) return { error: `${existing[0].name} is already a player.` };
-    [player] = await query<Player>("INSERT INTO players (name) VALUES ($1) RETURNING id, name", [name]);
-  } catch (err) {
-    return failure(err);
-  }
-  updateTag(DATA_TAG);
-  return { player };
 }

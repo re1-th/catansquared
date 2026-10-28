@@ -19,7 +19,7 @@ Leagues aren't stored. They're worked out from the game history every time (`src
 |---|---|
 | `/` Rankings | Current league table, leaders card, points race chart, recent games |
 | `/games` | Every game; edit and delete |
-| `/games/new` | Log a game; add new players inline |
+| `/games/new` | Log a game |
 | `/stats` | All-time stats across every league |
 | `/players`, `/players/[id]` | Player cards and per-player stats |
 | `/leagues` | Finished leagues and their champions |
@@ -31,7 +31,11 @@ Leagues aren't stored. They're worked out from the game history every time (`src
 3. In the project, open **Storage → Create Database → Neon** (Vercel Marketplace), create it on the free plan, and connect it to the project for all environments. This adds `DATABASE_URL` to the project's environment variables.
 4. **Redeploy** (Deployments → ⋯ → Redeploy) so the build picks up the database.
 
-That's it. The tables are created automatically on first use. Add players from the **Add game** page.
+That's it. The tables and the players are created automatically on first use.
+
+## Players
+
+The player list is fixed in `src/lib/players.ts`: Revanth, Harish, Bhamini, Somak, Bisht and Rajdeep. To add someone, append their name there and redeploy. Renaming an entry creates a new player rather than renaming the old one.
 
 ## Running locally
 

@@ -28,7 +28,9 @@ await db.exec(`
   TRUNCATE game_players, games, players RESTART IDENTITY CASCADE;
 `);
 
-const names = ["Bhamini", "Bisht", "Greg", "Harish", "Rajdeep", "Revanth", "Somak"];
+// Same list and order as src/lib/players.ts.
+const names = ["Revanth", "Harish", "Bhamini", "Somak", "Bisht", "Rajdeep"];
+const allIds = names.map((_, i) => i + 1);
 for (const name of names) await db.query("INSERT INTO players (name) VALUES ($1)", [name]);
 
 let seed = 7;
@@ -38,8 +40,8 @@ const pick = (arr) => arr[Math.floor(rand() * arr.length)];
 const day = new Date("2026-07-01T00:00:00Z");
 for (let g = 0; g < 34; g++) {
   day.setUTCDate(day.getUTCDate() + 1 + Math.floor(rand() * 4));
-  const ids = [1, 2, 3, 4, 5, 6, 7].filter(() => rand() > 0.3);
-  while (ids.length < 3) ids.push([1, 2, 3, 4, 5, 6, 7].find((id) => !ids.includes(id)));
+  const ids = allIds.filter(() => rand() > 0.3);
+  while (ids.length < 3) ids.push(allIds.find((id) => !ids.includes(id)));
   const winner = pick(ids);
   const road = rand() > 0.15 ? pick(ids) : null;
   const army = rand() > 0.25 ? pick(ids) : null;
@@ -53,5 +55,5 @@ for (let g = 0; g < 34; g++) {
   }
 }
 
-console.log("Seeded 7 players and 34 demo games into .data/pglite");
+console.log(`Seeded ${names.length} players and 34 demo games into .data/pglite`);
 await db.close();
