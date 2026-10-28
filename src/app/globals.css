@@ -1,26 +1,102 @@
 @import "tailwindcss";
 
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
+
+/* FieldRank palette. Light is the base; dark is applied by the theme script via data-theme. */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  color-scheme: light;
+  --background: #f1efea;
+  --foreground: #1e1d1a;
+  --card: #faf9f6;
+  --muted: #e9e6df;
+  --muted-foreground: #66635d;
+  --border: #ddd9cf;
+  --ring: #aba69c;
+  --signal: #f0a208;
+  --signal-foreground: #1e1d1a;
+  --grove: #5f8f5a;
+  --slate: #4b6fae;
+  --destructive: #e40014;
+  --hero: #1e1d1a;
+  --hero-foreground: #f1efea;
+
+  /* Categorical chart slots (dataviz reference palette, light steps). */
+  --series-1: #2a78d6;
+  --series-2: #eb6834;
+  --series-3: #1baf7a;
+  --series-4: #eda100;
+  --series-5: #e87ba4;
+  --series-6: #008300;
+  --series-7: #6250d6;
+  --series-8: #e34948;
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --background: #161513;
+  --foreground: #f1efea;
+  --card: #1f1e1b;
+  --muted: #292825;
+  --muted-foreground: #a19c92;
+  --border: #34322d;
+  --ring: #66625a;
+  --signal: #f5b325;
+  --signal-foreground: #161513;
+  --grove: #8abf84;
+  --slate: #7c9bda;
+  --destructive: #ff6568;
+  --hero: #f1efea;
+  --hero-foreground: #161513;
+
+  --series-1: #3987e5;
+  --series-2: #d95926;
+  --series-3: #199e70;
+  --series-4: #c98500;
+  --series-5: #d55181;
+  --series-6: #008300;
+  --series-7: #9085e9;
+  --series-8: #e66767;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-border: var(--border);
+  --color-ring: var(--ring);
+  --color-signal: var(--signal);
+  --color-signal-foreground: var(--signal-foreground);
+  --color-grove: var(--grove);
+  --color-slate: var(--slate);
+  --color-destructive: var(--destructive);
+  --color-hero: var(--hero);
+  --color-hero-foreground: var(--hero-foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  --radius-card: 0.625rem;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-geist-sans), system-ui, sans-serif;
+}
+
+/* Small uppercase mono labels, as used across FieldRank ("RANK", "IN PROGRESS"). */
+.eyebrow {
+  font-family: var(--font-geist-mono), ui-monospace, monospace;
+  font-size: 0.6875rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted-foreground);
+}
+
+.tabular {
+  font-variant-numeric: tabular-nums;
+}
+
+input[type="number"]::-webkit-inner-spin-button {
+  opacity: 1;
 }

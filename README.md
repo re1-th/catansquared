@@ -1,36 +1,60 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Catan² (Catan Squared)
 
-## Getting Started
+Standings, game history and stats for our Catan league. Next.js on Vercel, data in Neon Postgres.
 
-First, run the development server:
+## The rules
+
+- **1 point** for every game you win.
+- **2 points** for whoever has taken Longest Road the most times this league.
+- **2 points** for whoever has taken Largest Army the most times this league.
+- On a tie for most Longest Roads / Largest Armies, the 2 points stay with whoever reached that count first. They only move when someone strictly overtakes.
+- **First to 10 wins the league, but only on a game win.** Reaching 10 through a bonus doesn't end it; you still need to win a game while on 10 or more.
+- The next game after a league is won starts a new league with everyone on 0.
+
+Leagues aren't stored. They're worked out from the game history every time (`src/lib/league.ts`), so editing or deleting an old game recalculates everything after it, including past champions.
+
+When a game is **added**, the winner's score gets +1 (carried over from the SMT tracker). Edits save scores exactly as typed.
+
+## Pages
+
+| Page | What's on it |
+|---|---|
+| `/` Rankings | Current league table, leaders card, points race chart, recent games |
+| `/games` | Every game; edit and delete |
+| `/games/new` | Log a game; add new players inline |
+| `/stats` | All-time stats across every league |
+| `/players`, `/players/[id]` | Player cards and per-player stats |
+| `/leagues` | Finished leagues and their champions |
+
+## Deploying to Vercel with Neon
+
+1. The code lives at https://github.com/re1-th/catansquared.
+2. In Vercel: **Add New → Project**, import the repository, and deploy. The defaults are fine.
+3. In the project, open **Storage → Create Database → Neon** (Vercel Marketplace), create it on the free plan, and connect it to the project for all environments. This adds `DATABASE_URL` to the project's environment variables.
+4. **Redeploy** (Deployments → ⋯ → Redeploy) so the build picks up the database.
+
+That's it. The tables are created automatically on first use. Add players from the **Add game** page.
+
+## Running locally
 
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Without `DATABASE_URL` the app uses an embedded Postgres stored in `.data/` (git-ignored), so nothing needs setting up. To fill it with made-up games for a preview, stop the dev server and run `npm run seed:demo` (it wipes the local database first and refuses to run against Neon).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+To work against the real Neon database instead, link the project with the Vercel CLI and pull its env vars into `.env.local`:
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+npx vercel link
+npx vercel env pull .env.local
+```
 
-## Learn More
+## Checks
 
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```bash
+npm test        # league rule tests
+npm run lint
+npm run build
+```

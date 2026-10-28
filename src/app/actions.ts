@@ -1,0 +1,102 @@
+"use server";
+
+import { updateTag } from "next/cache";
+import { query } from "@/lib/db";
+import { DATA_TAG } from "@/lib/data";
+import type { GameInput, Player } from "@/lib/types";
+
+export type ActionResult = { error: string } | { ok: true };
+
+function validate(input: GameInput): string | null {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(input.playedOn) || Number.isNaN(Date.parse(input.playedOn))) {
+    return "Pick a valid date.";
+  }
+  const { results } = input;
+  if (results.length < 2) return "A game needs at least 2 players.";
+  if (new Set(results.map((r) => r.playerId)).size !== results.length) {
+    return "Each player can only appear once.";
+  }
+  if (results.some((r) => !Number.isInteger(r.score) || r.score < 0 || r.score > 30)) {
+    return "Scores must be whole numbers between 0 and 30.";
+  }
+  if (results.filter((r) => r.isWinner).length !== 1) return "Pick exactly one winner.";
+  if (results.filter((r) => r.longestRoad).length > 1) return "Only one player can hold Longest Road.";
+  if (results.filter((r) => r.largestArmy).length > 1) return "Only one player can hold Largest Army.";
+  return null;
+}
+
+function resultColumns(input: GameInput) {
+  const r = input.results;
+  return [
+    r.map((x) => x.playerId),
+    r.map((x) => x.score),
+    r.map((x) => x.isWinner),
+    r.map((x) => x.longestRoad),
+    r.map((x) => x.largestArmy),
+  ];
+}
+
+const RESULTS_FROM_ARRAYS = `unnest($2::int[], $3::int[], $4::bool[], $5::bool[], $6::bool[])
+  AS x(player_id, score, is_winner, longest_road, largest_army)`;
+
+export async function addGame(input: GameInput): Promise<ActionResult> {
+  // League house rule carried over from SMT: the winner's score gets +1 when a game is logged.
+  const withBonus = {
+    ...input,
+    results: input.results.map((r) => (r.isWinner ? { ...r, score: r.score + 1 } : r)),
+  };
+  const error = validate(withBonus);
+  if (error) return { error };
+
+  await query(
+    `WITH g AS (INSERT INTO games (played_on) VALUES ($1) RETURNING id)
+     INSERT INTO game_players (game_id, player_id, score, is_winner, longest_road, largest_army)
+     SELECT g.id, x.player_id, x.score, x.is_winner, x.longest_road, x.largest_army
+     FROM g, ${RESULTS_FROM_ARRAYS}`,
+    [withBonus.playedOn, ...resultColumns(withBonus)],
+  );
+  updateTag(DATA_TAG);
+  return { ok: true };
+}
+
+export async function updateGame(id: number, input: GameInput): Promise<ActionResult> {
+  const error = validate(input);
+  if (error) return { error };
+
+  const rows = await query(
+    `WITH g AS (UPDATE games SET played_on = $1 WHERE id = $7 RETURNING id),
+     removed AS (DELETE FROM game_players WHERE game_id = $7 AND player_id <> ALL($2::int[]))
+     INSERT INTO game_players (game_id, player_id, score, is_winner, longest_road, largest_army)
+     SELECT g.id, x.player_id, x.score, x.is_winner, x.longest_road, x.largest_army
+     FROM g, ${RESULTS_FROM_ARRAYS}
+     ON CONFLICT (game_id, player_id) DO UPDATE SET
+       score = EXCLUDED.score,
+       is_winner = EXCLUDED.is_winner,
+       longest_road = EXCLUDED.longest_road,
+       largest_army = EXCLUDED.largest_army
+     RETURNING game_id`,
+    [input.playedOn, ...resultColumns(input), id],
+  );
+  if (rows.length === 0) return { error: "That game no longer exists." };
+  updateTag(DATA_TAG);
+  return { ok: true };
+}
+
+export async function deleteGame(id: number): Promise<ActionResult> {
+  await query("DELETE FROM games WHERE id = $1", [id]);
+  updateTag(DATA_TAG);
+  return { ok: true };
+}
+
+export async function addPlayer(rawName: string): Promise<{ error: string } | { player: Player }> {
+  const name = rawName.trim().replace(/\s+/g, " ");
+  if (!name) return { error: "Enter a name." };
+  if (name.length > 30) return { error: "Keep names under 30 characters." };
+
+  const existing = await query<Player>("SELECT id, name FROM players WHERE lower(name) = lower($1)", [name]);
+  if (existing.length > 0) return { error: `${existing[0].name} is already a player.` };
+
+  const [player] = await query<Player>("INSERT INTO players (name) VALUES ($1) RETURNING id, name", [name]);
+  updateTag(DATA_TAG);
+  return { player };
+}
