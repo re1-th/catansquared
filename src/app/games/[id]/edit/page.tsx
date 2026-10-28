@@ -14,7 +14,7 @@ export default async function EditGamePage({ params }: PageProps<"/games/[id]/ed
 
   return (
     <>
-      <PageTitle title={`Edit game ${game.number}`}>Scores are saved exactly as entered here, with no winner bonus added.</PageTitle>
+      <PageTitle title={`Edit game ${game.number}`} />
       <GameForm players={players} game={game} />
     </>
   );

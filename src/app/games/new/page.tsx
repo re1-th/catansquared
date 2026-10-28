@@ -9,7 +9,7 @@ export default async function NewGamePage() {
   const { players } = await loadLeague();
   return (
     <>
-      <PageTitle title="Add game">Pick who played, then enter scores. The winner gets +1 added to their score when the game is saved.</PageTitle>
+      <PageTitle title="Add game">Pick who played, then enter each player’s final score.</PageTitle>
       <GameForm players={players} />
     </>
   );

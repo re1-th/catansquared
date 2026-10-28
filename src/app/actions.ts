@@ -40,12 +40,7 @@ const RESULTS_FROM_ARRAYS = `unnest($2::int[], $3::int[], $4::bool[], $5::bool[]
   AS x(player_id, score, is_winner, longest_road, largest_army)`;
 
 export async function addGame(input: GameInput): Promise<ActionResult> {
-  // League house rule carried over from SMT: the winner's score gets +1 when a game is logged.
-  const withBonus = {
-    ...input,
-    results: input.results.map((r) => (r.isWinner ? { ...r, score: r.score + 1 } : r)),
-  };
-  const error = validate(withBonus);
+  const error = validate(input);
   if (error) return { error };
 
   await query(
@@ -53,7 +48,7 @@ export async function addGame(input: GameInput): Promise<ActionResult> {
      INSERT INTO game_players (game_id, player_id, score, is_winner, longest_road, largest_army)
      SELECT g.id, x.player_id, x.score, x.is_winner, x.longest_road, x.largest_army
      FROM g, ${RESULTS_FROM_ARRAYS}`,
-    [withBonus.playedOn, ...resultColumns(withBonus)],
+    [input.playedOn, ...resultColumns(input)],
   );
   updateTag(DATA_TAG);
   return { ok: true };

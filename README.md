@@ -13,8 +13,6 @@ Standings, game history and stats for our Catan league. Next.js on Vercel, data 
 
 Leagues aren't stored. They're worked out from the game history every time (`src/lib/league.ts`), so editing or deleting an old game recalculates everything after it, including past champions.
 
-When a game is **added**, the winner's score gets +1 (carried over from the SMT tracker). Edits save scores exactly as typed.
-
 ## Pages
 
 | Page | What's on it |
