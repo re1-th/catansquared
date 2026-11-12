@@ -5,9 +5,10 @@ Standings, game history and stats for our Catan league. Next.js on Vercel, data 
 ## The rules
 
 - **1 point** for every game you win.
-- **2 points** for whoever has taken Longest Road the most times this league.
-- **2 points** for whoever has taken Largest Army the most times this league.
-- On a tie for most Longest Roads / Largest Armies, the 2 points stay with whoever reached that count first. They only move when someone strictly overtakes.
+- **2 points for Longest Road**, claimed by the first player to take it **5 times** in the league.
+- **2 points for Largest Army**, claimed by the first player to take it **3 times** in the league.
+- After that, the 2 points only move when someone takes it more times than the holder (e.g. 6 Longest Roads against the holder's 5). A tie stays with whoever got to that count first.
+- The thresholds are `BONUS_THRESHOLDS` in `src/lib/league.ts`.
 - **First to 10 wins the league, but only on a game win.** Reaching 10 through a bonus doesn't end it; you still need to win a game while on 10 or more.
 - The next game after a league is won starts a new league with everyone on 0.
 

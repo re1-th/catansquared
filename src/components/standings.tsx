@@ -81,15 +81,17 @@ export function StandingsTable({ league, nameOf }: { league: League; nameOf: (id
 }
 
 function raceLine(race: BonusRace, nameOf: (id: number) => string) {
-  if (race.holderId === null) return { holder: "Not taken yet", rest: "" };
-  const others = [...race.counts.entries()]
-    .filter(([id]) => id !== race.holderId)
-    .sort((a, b) => b[1] - a[1])
-    .slice(0, 2)
-    .map(([id, n]) => `${nameOf(id)} ${n}`);
+  const chasers = [...race.counts.entries()].filter(([id]) => id !== race.holderId).sort((a, b) => b[1] - a[1]);
+  if (race.holderId === null) {
+    // Nobody has the 2 points yet: show who is closest to the threshold.
+    return {
+      holder: "Not claimed yet",
+      rest: chasers.slice(0, 3).map(([id, n]) => `${nameOf(id)} ${n}/${race.threshold}`).join(" · "),
+    };
+  }
   return {
     holder: `${nameOf(race.holderId)} · ${race.counts.get(race.holderId)}`,
-    rest: others.join(" · "),
+    rest: chasers.slice(0, 2).map(([id, n]) => `${nameOf(id)} ${n}`).join(" · "),
   };
 }
 

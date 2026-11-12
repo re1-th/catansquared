@@ -19,8 +19,9 @@ export default async function RankingsPage() {
           badge={<Badge tone="outline">{current.games.length ? "In progress" : "Not started"}</Badge>}
         >
           <p>
-            First to 10 points takes the league. A win is worth 1. Holding the most Longest Roads or Largest Armies
-            is worth 2 each. The title can only be clinched with a game win.
+            First to 10 points takes the league. A win is worth 1. Longest Road and Largest Army are worth 2 each,
+            claimed by the first to take them 5 and 3 times; after that, you need one more than the holder to
+            take them away. The title can only be clinched with a game win.
           </p>
           {previous && previous.championId !== null && (
             <p className="mt-3 text-sm">

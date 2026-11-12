@@ -18,7 +18,7 @@ function RaceTable({ title, race, league, nameOf }: { title: string; race: Bonus
     <Card className="overflow-x-auto">
       <h3 className="eyebrow px-4 pt-4 sm:px-5">{title}</h3>
       {race.history.length === 0 ? (
-        <p className="px-4 pb-5 pt-3 text-sm text-muted-foreground sm:px-5">Not taken yet.</p>
+        <p className="px-4 pb-5 pt-3 text-sm text-muted-foreground sm:px-5">Nobody has taken it {race.threshold} times yet.</p>
       ) : (
         <table className="mt-2 w-full whitespace-nowrap text-sm">
           <thead>
@@ -47,7 +47,7 @@ function RaceTable({ title, race, league, nameOf }: { title: string; race: Bonus
                   </td>
                   <td className="px-2 py-2.5 pr-4 sm:pr-5">
                     {change.fromId === null ? (
-                      <span className="text-muted-foreground">First to take it</span>
+                      <span className="text-muted-foreground">First to {race.threshold}</span>
                     ) : (
                       <div className="flex items-center gap-2">
                         <PlayerName id={change.fromId} nameOf={nameOf} />

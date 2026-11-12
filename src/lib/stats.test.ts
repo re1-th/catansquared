@@ -28,7 +28,8 @@ function game(n: number, rows: Row[]): Game {
 }
 
 function run(games: Game[]) {
-  const leagues = computeLeagues(games, players.map((p) => p.id));
+  // Bonus thief needs hand-overs, so the bonus counts from its first take here.
+  const leagues = computeLeagues(games, players.map((p) => p.id), { longestRoad: 1, largestArmy: 1 });
   const stats = playerStats(players, games, leagues);
   const list = highlights(games, stats, leagues);
   return (label: string) => list.find((h) => h.label === label)!;

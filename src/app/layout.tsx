@@ -38,7 +38,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         <main className="mx-auto w-full max-w-6xl flex-1 px-4 pb-20 pt-8 sm:px-6 sm:pt-12">{children}</main>
         <footer className="border-t border-border">
           <div className="eyebrow mx-auto max-w-6xl px-4 py-6 sm:px-6">
-            First to 10 points · 1 per win · 2 for most Longest Roads · 2 for most Largest Armies
+            First to 10 points · 1 per win · 2 for Longest Road (from 5) · 2 for Largest Army (from 3)
           </div>
         </footer>
       </body>

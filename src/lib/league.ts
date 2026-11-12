@@ -3,12 +3,18 @@ import type { Game } from "./types";
 export const POINTS_TO_WIN = 10;
 export const BONUS_POINTS = 2;
 
+/** How many times a player must take each bonus in a league before its 2 points are awarded. */
+export type BonusThresholds = { longestRoad: number; largestArmy: number };
+export const BONUS_THRESHOLDS: BonusThresholds = { longestRoad: 5, largestArmy: 3 };
+
 /**
- * Who holds a bonus (Longest Road or Largest Army) across a league. The holder is
- * whoever has taken it the most times; on a tie it stays with whoever reached
- * that count first, so it only changes hands when someone strictly passes them.
+ * Who holds a bonus (Longest Road or Largest Army) across a league. Nobody holds it until
+ * someone has taken it `threshold` times; the first to get there holds it. After that it
+ * only changes hands when someone strictly passes the holder's count, so a tie stays with
+ * whoever reached that count first.
  */
 export type BonusRace = {
+  threshold: number;
   holderId: number | null;
   counts: Map<number, number>;
   /** Every time the bonus changed hands, oldest first. */
@@ -21,7 +27,7 @@ export type BonusChange = {
   holderId: number;
   /** The new holder's count after that game. */
   count: number;
-  /** Who they took it from (null for the first holder) and that player's count at the time. */
+  /** Who they took it from (null for the first to reach the threshold) and that player's count at the time. */
   fromId: number | null;
   fromCount: number;
 };
@@ -56,20 +62,21 @@ function takeBonus(race: BonusRace, playerId: number, gameIndex: number) {
   race.counts.set(playerId, count);
   const fromId = race.holderId;
   const fromCount = fromId === null ? 0 : (race.counts.get(fromId) ?? 0);
-  if (fromId === null || (fromId !== playerId && count > fromCount)) {
+  const claims = fromId === null ? count >= race.threshold : fromId !== playerId && count > fromCount;
+  if (claims) {
     race.holderId = playerId;
     race.history.push({ gameIndex, holderId: playerId, count, fromId, fromCount });
   }
 }
 
-function newLeague(number: number): League {
+function newLeague(number: number, thresholds: BonusThresholds): League {
   return {
     number,
     games: [],
     championId: null,
     standings: [],
-    longestRoad: { holderId: null, counts: new Map(), history: [] },
-    largestArmy: { holderId: null, counts: new Map(), history: [] },
+    longestRoad: { threshold: thresholds.longestRoad, holderId: null, counts: new Map(), history: [] },
+    largestArmy: { threshold: thresholds.largestArmy, holderId: null, counts: new Map(), history: [] },
     pointsTimeline: new Map(),
   };
 }
@@ -93,9 +100,13 @@ function rankStandings(standings: Standing[]) {
  * gained from bonuses alone never end it. The next game starts a fresh league.
  * The last league is the current one (it may have no games yet).
  */
-export function computeLeagues(games: Game[], playerIds: number[]): League[] {
+export function computeLeagues(
+  games: Game[],
+  playerIds: number[],
+  thresholds: BonusThresholds = BONUS_THRESHOLDS,
+): League[] {
   const leagues: League[] = [];
-  let league = newLeague(1);
+  let league = newLeague(1, thresholds);
   let wins = new Map<number, number>();
   let played = new Map<number, number>();
   let reachedAt = new Map<number, number>();
@@ -146,7 +157,7 @@ export function computeLeagues(games: Game[], playerIds: number[]): League[] {
       league.championId = winnerId;
       finalise(league);
       leagues.push(league);
-      league = newLeague(league.number + 1);
+      league = newLeague(league.number + 1, thresholds);
       wins = new Map();
       played = new Map();
       reachedAt = new Map();
